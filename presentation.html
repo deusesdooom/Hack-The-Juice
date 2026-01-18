@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Juice Shop - Defense Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .slide {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-header {
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .slide-title {
+            font-size: 48px;
+            color: #2d3748;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .slide-subtitle {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .slide-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 20px;
+        }
+
+        .slide-content h2 {
+            font-size: 36px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        .slide-content h3 {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 15px;
+            margin-top: 15px;
+        }
+
+        .slide-content p {
+            font-size: 20px;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .slide-content ul {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide-content li {
+            font-size: 20px;
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .highlight-box {
+            background: #f7fafc;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .column-box {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .tool-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tool-card h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .tool-card p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .challenge-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .challenge-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .challenge-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .challenge-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-size: 18px;
+            color: #718096;
+        }
+
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide .slide-title {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .title-slide .slide-subtitle {
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
+        .title-slide .author-info {
+            font-size: 24px;
+            color: #4a5568;
+            margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .methodology-step {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .methodology-step::before {
+            content: attr(data-number);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .emoji {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <div class="emoji">🛡️🔒</div>
+            <div class="slide-title">OWASP Juice Shop</div>
+            <div class="slide-subtitle">Penetration Testing Project</div>
+            <div class="author-info">
+                <p><strong>Mehdi Ben Khadra</strong></p>
+                <p>Student at Epitech</p>
+                <p>mehdi.ben-khadra@epitech.eu</p>
+                <p style="margin-top: 20px; font-size: 20px;">January 2026</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: About Me -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">About Me</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">👨‍💻</div>
+                <h2>Mehdi Ben Khadra</h2>
+                <div class="highlight-box">
+                    <h3>Background</h3>
+                    <p><strong>🎓 Student at Epitech</strong></p>
+                    <p>This project is part of my school curriculum as a module requirement</p>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3>Passion for Cybersecurity</h3>
+                    <p>🔐 Focused on <strong>offensive security</strong></p>
+                    <p>🎯 Understanding how systems can be compromised to better defend them</p>
+                    <p>💡 Interested in ethical hacking and penetration testing</p>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>Learning Journey</h3>
+                    <p>📚 Started in high school, continued through Epitech</p>
+                    <p>🛠️ Hands-on approach: learning by doing</p>
+                    <p>🔍 Exploring real-world vulnerabilities in safe environments</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: What is OWASP Juice Shop -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">What is OWASP Juice Shop?</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🧃🔓</div>
+                <p><strong>OWASP Juice Shop is an intentionally vulnerable web application</strong> created by the Open Web Application Security Project (OWASP) for security training.</p>
+                
+                <h3>Key Features:</h3>
+                <ul>
+                    <li><strong>Modern Tech Stack:</strong> Built with Node.js, Express, and Angular - real production technologies</li>
+                    <li><strong>Realistic Vulnerabilities:</strong> Contains actual security flaws found in real-world applications</li>
+                    <li><strong>Progressive Difficulty:</strong> Challenges from 1-star (beginner) to 6-star (expert)</li>
+                    <li><strong>Safe & Legal:</strong> Completely ethical platform - no legal concerns</li>
+                    <li><strong>OWASP Top 10 Coverage:</strong> Covers all critical web security risks</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <h3>Why Juice Shop?</h3>
+                    <p>✓ Simulates a real e-commerce website (online juice store)</p>
+                    <p>✓ Immediate feedback when challenges are solved</p>
+                    <p>✓ Used globally by security professionals for training</p>
+                    <p>✓ Bridge between theory and practice</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Application Architecture -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Juice Shop Architecture</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🏗️</div>
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Frontend</h3>
+                        <p><strong>Angular SPA</strong></p>
+                        <p>• Single-page application</p>
+                        <p>• What users see and interact with</p>
+                        <p>• Client-side JavaScript</p>
+                        <p>• Can be inspected and manipulated</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Backend</h3>
+                        <p><strong>Node.js + Express</strong></p>
+                        <p>• RESTful API</p>
+                        <p>• Server-side logic</p>
+                        <p>• Where security should be enforced</p>
+                        <p>• Processes requests and responses</p>
+                    </div>
+                </div>
+                
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Database</h3>
+                        <p><strong>SQLite</strong></p>
+                        <p>• Stores products, users, orders</p>
+                        <p>• Vulnerable to SQL injection</p>
+                        <p>• Contains sensitive data</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Authentication</h3>
+                        <p><strong>JWT Tokens</strong></p>
+                        <p>• JSON Web Tokens</p>
+                        <p>• Session management</p>
+                        <p>• Can be analyzed and manipulated</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <p><strong>Important:</strong> Understanding the architecture helps identify where vulnerabilities might exist and how to exploit them.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Fundamentals of Hacking -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Fundamentals of Web Hacking</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🎯</div>
+                <h3>The Core Concept</h3>
+                <p>Web application hacking involves finding and exploiting weaknesses in how applications handle data, authenticate users, and enforce security policies.</p>
+
+                <h3>Key Principles:</h3>
+                <div class="highlight-box">
+                    <h3>1. Attack Surface</h3>
+                    <p>• <strong>Input Points:</strong> Forms, URLs, cookies, headers - anywhere users send data</p>
+                    <p>• <strong>Client vs Server:</strong> Client-side can be manipulated; real security must be server-side</p>
+                    <p>• <strong>Trust Boundaries:</strong> NEVER trust user input</p>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>2. The Attacker's Mindset</h3>
+                    <p>🔍 <strong>Reconnaissance:</strong> Explore and understand the application</p>
+                    <p>🎯 <strong>Identify Weaknesses:</strong> Look for unusual behavior, missing validations</p>
+                    <p>⚡ <strong>Exploit:</strong> Craft specific attacks to abuse the weaknesses</p>
+                    <p>📊 <strong>Assess Impact:</strong> Understand what damage could be done</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: OWASP Top 10 Overview -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">OWASP Top 10 Categories</div>
+                <div class="slide-subtitle">Most Critical Web Security Risks</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">📋</div>
+                <p><strong>The OWASP Top 10 represents the most critical security risks to web applications.</strong></p>
+
+                <div class="methodology-step" data-number="A01">
+                    <h3>Broken Access Control</h3>
+                    <p>Users can access data or perform actions they shouldn't be authorized for</p>
+                </div>
+
+                <div class="methodology-step" data-number="A02">
+                    <h3>Cryptographic Failures</h3>
+                    <p>Sensitive data exposed due to weak encryption or missing protection</p>
+                </div>
+
+                <div class="methodology-step" data-number="A03">
+                    <h3>Injection</h3>
+                    <p>Malicious code inserted into application inputs (SQL, NoSQL, Command injection)</p>
+                </div>
+
+                <div class="methodology-step" data-number="A07">
+                    <h3>Broken Authentication</h3>
+                    <p>Flaws in how the application verifies user identity</p>
+                </div>
+
+                <div class="methodology-step" data-number="A08">
+                    <h3>Improper Input Validation</h3>
+                    <p>Application doesn't properly check or sanitize user inputs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Tools - Burp Suite -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Tools: Burp Suite</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🔧</div>
+                <div class="tool-card">
+                    <h2 style="color: white;">Burp Suite Community Edition</h2>
+                    <p><strong>The industry-standard platform for web application security testing</strong></p>
+                    <p>Think of it as a "man-in-the-middle" between your browser and the target application</p>
+                </div>
+
+                <h3>Key Components Used:</h3>
+                
+                <div class="highlight-box">
+                    <h3>🔄 Proxy</h3>
+                    <p>• Intercepts ALL HTTP/HTTPS traffic between browser and application</p>
+                    <p>• Allows me to see and modify requests BEFORE they reach the server</p>
+                    <p>• Essential for understanding what data is being sent</p>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>🔁 Repeater</h3>
+                    <p>• Manually modify and resend individual requests</p>
+                    <p>• Test different payloads and parameters</p>
+                    <p>• Iterate quickly on exploitation attempts</p>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>⚡ Intruder</h3>
+                    <p>• Automates customized attacks</p>
+                    <p>• Used for brute force and fuzzing</p>
+                    <p>• Tests multiple payloads systematically</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Tools - Chromium & Browser -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Tools: Chromium Browser</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🌐</div>
+                <div class="tool-card">
+                    <h2 style="color: white;">Chromium with Burp Proxy</h2>
+                    <p><strong>Browser configured with Burp Suite's proxy</strong></p>
+                    <p>All traffic automatically routed through Burp for interception and analysis</p>
+                </div>
+
+                <h3>Browser Developer Tools:</h3>
+                
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Inspector</h3>
+                        <p>• View and modify HTML/CSS</p>
+                        <p>• Inspect page structure</p>
+                        <p>• Find hidden elements</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Console</h3>
+                        <p>• Execute JavaScript</p>
+                        <p>• Test XSS payloads</p>
+                        <p>• Debug client-side code</p>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Network Tab</h3>
+                        <p>• Monitor all HTTP requests</p>
+                        <p>• Analyze API calls and responses</p>
+                        <p>• Track data flow</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Storage Inspector</h3>
+                        <p>• View cookies</p>
+                        <p>• Inspect local/session storage</p>
+                        <p>• Analyze JWT tokens</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <p><strong>Workflow:</strong> Chromium → Burp Proxy → Juice Shop Server</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Methodology -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">My Penetration Testing Methodology</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🎯</div>
+                <p><strong>For each challenge, I followed a structured approach:</strong></p>
+
+                <div class="methodology-step" data-number="1">
+                    <h3>Reconnaissance</h3>
+                    <p>Explore the application, identify potential attack surfaces, map functionality</p>
+                </div>
+
+                <div class="methodology-step" data-number="2">
+                    <h3>Enumeration</h3>
+                    <p>Analyze HTTP requests/responses, inspect client-side code, identify API endpoints</p>
+                </div>
+
+                <div class="methodology-step" data-number="3">
+                    <h3>Vulnerability Analysis</h3>
+                    <p>Test inputs for injection, check access control, examine authentication mechanisms</p>
+                </div>
+
+                <div class="methodology-step" data-number="4">
+                    <h3>Exploitation</h3>
+                    <p>Craft specific payloads, use Burp Suite to manipulate requests, capture evidence</p>
+                </div>
+
+                <div class="methodology-step" data-number="5">
+                    <h3>Post-Exploitation</h3>
+                    <p>Assess vulnerability impact, determine severity, consider business implications</p>
+                </div>
+
+                <div class="methodology-step" data-number="6">
+                    <h3>Documentation</h3>
+                    <p>Write detailed reports, explain vulnerabilities, propose remediation strategies</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Specific Techniques -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Attack Techniques Used</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">⚔️</div>
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>OSINT</h3>
+                        <p>• Searching source code comments</p>
+                        <p>• Analyzing JavaScript files</p>
+                        <p>• Finding hidden routes</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Parameter Tampering</h3>
+                        <p>• Modifying IDs, prices, quantities</p>
+                        <p>• Testing authorization checks</p>
+                        <p>• Bypassing client-side validation</p>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Injection Attacks</h3>
+                        <p>• SQL injection</p>
+                        <p>• NoSQL injection</p>
+                        <p>• Payload crafting</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Authentication Testing</h3>
+                        <p>• Password analysis</p>
+                        <p>• Session manipulation</p>
+                        <p>• JWT token analysis</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>Access Control Testing</h3>
+                    <p>• <strong>Horizontal Escalation:</strong> Accessing other users' data</p>
+                    <p>• <strong>Vertical Escalation:</strong> Accessing admin functions</p>
+                    <p>• <strong>IDOR:</strong> Insecure Direct Object Reference exploitation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Completed Challenges -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Completed Challenges</div>
+                <div class="slide-subtitle">10 Security Challenges Solved</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">✅</div>
+                <table class="challenge-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Challenge Name</th>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Key Vulnerability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Forged Review</td>
+                            <td>Broken Access Control</td>
+                            <td>⭐⭐⭐</td>
+                            <td>Authorization Bypass</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Forged Feedback</td>
+                            <td>Broken Access Control</td>
+                            <td>⭐⭐⭐</td>
+                            <td>CAPTCHA Bypass</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Product Tampering</td>
+                            <td>Broken Access Control</td>
+                            <td>⭐⭐⭐</td>
+                            <td>Price Manipulation</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Access Log</td>
+                            <td>Sensitive Data Exposure</td>
+                            <td>⭐⭐⭐⭐</td>
+                            <td>Path Traversal</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Payback Time</td>
+                            <td>Improper Input Validation</td>
+                            <td>⭐⭐⭐</td>
+                            <td>Negative Quantity</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>GDPR Data Theft</td>
+                            <td>Sensitive Data Exposure</td>
+                            <td>⭐⭐⭐⭐</td>
+                            <td>Data Export Abuse</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>Change Bender's Password</td>
+                            <td>Broken Authentication</td>
+                            <td>⭐⭐⭐⭐</td>
+                            <td>Security Question Bypass</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>NoSQL Manipulation</td>
+                            <td>Injection</td>
+                            <td>⭐⭐⭐⭐</td>
+                            <td>NoSQL Injection</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>Retrieve Blueprint</td>
+                            <td>Sensitive Data Exposure</td>
+                            <td>⭐⭐⭐⭐⭐</td>
+                            <td>File Access</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>Manipulate Basket</td>
+                            <td>Broken Access Control</td>
+                            <td>⭐⭐⭐</td>
+                            <td>Basket Tampering</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 12: Key Learning -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Key Learnings</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">💡</div>
+                <h3>Technical Skills Gained:</h3>
+                <div class="highlight-box">
+                    <p>✓ <strong>Offensive Security:</strong> Identifying and exploiting vulnerabilities systematically</p>
+                    <p>✓ <strong>Security Analysis:</strong> Understanding root causes of security flaws</p>
+                    <p>✓ <strong>Tool Mastery:</strong> Professional use of Burp Suite and browser dev tools</p>
+                    <p>✓ <strong>Risk Assessment:</strong> Evaluating business impact of security issues</p>
+                </div>
+
+                <h3>Critical Insights:</h3>
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Client vs Server</h3>
+                        <p>Client-side validation is NOT security - always validate server-side</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Small Mistakes, Big Impact</h3>
+                        <p>Seemingly minor misconfigurations can lead to major breaches</p>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>Attacker Mindset</h3>
+                        <p>Thinking like an attacker helps identify security weaknesses</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>Pattern Recognition</h3>
+                        <p>Similar vulnerabilities appear across different applications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Real-World Application -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Real-World Application</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🌍</div>
+                <h3>Why This Matters:</h3>
+                <div class="highlight-box">
+                    <p>The vulnerabilities in Juice Shop are <strong>real vulnerabilities</strong> found in production applications worldwide.</p>
+                </div>
+
+                <h3>Skills Applicable To:</h3>
+                <ul>
+                    <li><strong>Professional Penetration Testing:</strong> Conducting security assessments for clients</li>
+                    <li><strong>Secure Development:</strong> Building applications with security in mind from day one</li>
+                    <li><strong>Security Research:</strong> Discovering and reporting vulnerabilities responsibly</li>
+                    <li><strong>DevSecOps:</strong> Integrating security into development pipelines</li>
+                    <li><strong>Incident Response:</strong> Understanding how attacks happen to respond effectively</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <h3>Ethical Considerations</h3>
+                    <p>🔐 Always practice on legal, authorized targets only</p>
+                    <p>📋 Proper authorization is ESSENTIAL</p>
+                    <p>🤝 Responsible disclosure of real vulnerabilities</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Project Outcomes -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Project Outcomes</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🎯</div>
+                <h2>What I Achieved:</h2>
+                
+                <div class="tool-card">
+                    <h3>10 Challenges Completed</h3>
+                    <p>Across 5 different OWASP Top 10 categories</p>
+                    <p>Difficulty range: 3-star to 5-star challenges</p>
+                </div>
+
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>📝 Documentation</h3>
+                        <p>• Detailed write-ups for each challenge</p>
+                        <p>• Professional security reports</p>
+                        <p>• Remediation recommendations</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>🛠️ Tool Proficiency</h3>
+                        <p>• Burp Suite mastery</p>
+                        <p>• Browser dev tools expertise</p>
+                        <p>• HTTP protocol understanding</p>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="column-box">
+                        <h3>🧠 Knowledge</h3>
+                        <p>• OWASP Top 10 vulnerabilities</p>
+                        <p>• Attack methodologies</p>
+                        <p>• Security best practices</p>
+                    </div>
+                    <div class="column-box">
+                        <h3>💼 Professional Skills</h3>
+                        <p>• Structured pentesting approach</p>
+                        <p>• Risk assessment capabilities</p>
+                        <p>• Technical communication</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Conclusion -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Conclusion</div>
+            </div>
+            <div class="slide-content">
+                <div class="emoji">🎓</div>
+                <div class="highlight-box">
+                    <h2>Project Summary</h2>
+                    <p>This project provided <strong>hands-on experience with real-world web application vulnerabilities</strong> in a safe, legal environment.</p>
+                </div>
+
+                <h3>Key Takeaways:</h3>
+                <ul>
+                    <li>Security is about <strong>understanding both attack and defense</strong></li>
+                    <li>Small misconfigurations can have <strong>major consequences</strong></li>
+                    <li>Proper security requires <strong>defense in depth</strong> - multiple layers of protection</li>
+                    <li>Never trust user input - <strong>validate everything server-side</strong></li>
+                    <li>Security testing requires <strong>systematic methodology</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 16: Questions -->
+        <div class="slide title-slide">
+            <div class="emoji">❓</div>
+            <div class="slide-title">Questions?</div>
+            <div class="author-info">
+                <p style="font-size: 28px; margin-top: 40px;">Thank you for your attention!</p>
+                <p style="margin-top: 30px;"><strong>Mehdi Ben Khadra</strong></p>
+                <p>mehdi.ben-khadra@epitech.eu</p>
+                <p style="margin-top: 30px; font-size: 20px;">Ready to demonstrate the challenges and discuss methodologies</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+        
+        <div class="slide-number" id="slideNumber">1 / 16</div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 16;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const slideNumber = document.getElementById('slideNumber');
+
+            if (n > totalSlides) currentSlide = totalSlides;
+            if (n < 1) currentSlide = 1;
+
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+
+            prevBtn.disabled = currentSlide === 1;
+            nextBtn.disabled = currentSlide === totalSlides;
+
+            slideNumber.textContent = `${currentSlide} / ${totalSlides}`;
+        }
+
+        function changeSlide(n) {
+            currentSlide += n;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') changeSlide(1);
+            if (event.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        // Initialize
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
